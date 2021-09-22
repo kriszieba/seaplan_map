@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<meta charset="utf-8" />
+	<title>Seaplan - marine litter risk</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+
+
+<style>
+	html, body {
+		height: 100%;
+		margin: 0;
+	}
+	#map {
+		width: 600px;
+		height: 400px;
+	}
+</style>
+
+<style>#map { width: 100vw; height: 100vh; }
+.info { padding: 5px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; }
+.legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.6; }
+.leaflet-touch .leaflet-control-layers{ padding: 5px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border: none; border-radius: 5px;}
+</style>
+
+</head>
+<body style='margin:0'>
+
+<div id='map'></div>
+
+<!--
+<body style='margin:0'>
+	<div id="map" style="width: 100vw; height: 100vh"></div>-->
+	<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+	<script type="text/javascript"  src="https://unpkg.com/leaflet.vectorgrid@1.2.0"></script>
+	<!-- AJAX link -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+	<script>
+
+//// Load geojson files ////
+	  var landRelated= $.ajax({
+	    url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/land_related_model_norway_1x1km.geojson",
+	    dataType: "json",
+	    success: console.log("Land-related model successfully loaded"),
+	    error: function(xhr) {
+	      alert(xhr.statusText)
+	    }
+	  })
+
+	//    var commonfish= $.ajax({
+	//      url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/used_equipment_model_COMMON_norway_1x1km.geojson",
+	//      dataType: "json",
+	//      success: console.log("Crabpot model successfully loaded"),
+	//      error: function(xhr) {
+	//        alert(xhr.statusText)
+	//      }
+	//    })
+
+	  var crabpot= $.ajax({
+	    url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/used_equipment_model_CRABPOT_norway_1x1km.geojson",
+	    dataType: "json",
+	    success: console.log("Crabpot model successfully loaded"),
+	    error: function(xhr) {
+	      alert(xhr.statusText)
+	    }
+	  })
+
+	  var danpurseine= $.ajax({
+	    url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/used_equipment_model_DANPURSEINE_norway_1x1km.geojson",
+	    dataType: "json",
+	    success: console.log("Crabpot model successfully loaded"),
+	    error: function(xhr) {
+	      alert(xhr.statusText)
+	    }
+	  })
+
+	  var longline= $.ajax({
+	    url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/used_equipment_model_LONGLINE_norway_1x1km.geojson",
+	    dataType: "json",
+	    success: console.log("Crabpot model successfully loaded"),
+	    error: function(xhr) {
+	      alert(xhr.statusText)
+	    }
+	  })
+
+	  var nets= $.ajax({
+	    url: "https://raw.githubusercontent.com/kriszieba/kriszieba.github.io/main/Public/geojson/used_equipment_model_NETS_norway_1x1km.geojson",
+	    dataType: "json",
+	    success: console.log("Crabpot model successfully loaded"),
+	    error: function(xhr) {
+	      alert(xhr.statusText)
+	    }
+	  })
+//// END Load geojson files ////
+
+function getColor(d) {
+    return d > 0.9 ? '#990000' :
+           d > 0.7  ? '#d7301f' :
+           d > 0.5  ? '#ef6548' :
+           d > 0.3  ? '#fc8d59' :
+           d > 0.1   ? '#fdbb84' :
+           d > 0.05   ? '#fdd49e' :
+           d > 0.02   ? '#fee8c8' :
+                      '#fff7ec';
+}
+
+function style(properties) {
+	var d = properties.count_norm % 7;
+	return {
+		fillColor: getColor(d),
+		fillOpacity: 0.8,
+		stroke: null,
+		fill: true
+	}
+}
+
+$.when(landRelated, crabpot, danpurseine, longline, nets).done(function() {
+
+		var landLayer = L.vectorGrid.slicer(landRelated.responseJSON, {
+			rendererFactory: L.svg.tile,
+			vectorTileLayerStyles: {
+				sliced: style
+			}
+		}),
+
+		danpurseineLayer = L.vectorGrid.slicer(danpurseine.responseJSON, {
+			rendererFactory: L.svg.tile,
+			vectorTileLayerStyles: {
+				sliced: style
+			}
+		}),
+
+		netsLayer = L.vectorGrid.slicer(nets.responseJSON, {
+			rendererFactory: L.svg.tile,
+			vectorTileLayerStyles: {
+				sliced: style
+			}
+		}),
+
+		longlineLayer = L.vectorGrid.slicer(longline.responseJSON, {
+			rendererFactory: L.svg.tile,
+			vectorTileLayerStyles: {
+				sliced: style
+			}
+		}),
+
+		crabpotLayer = L.vectorGrid.slicer(crabpot.responseJSON, {
+			rendererFactory: L.svg.tile,
+			vectorTileLayerStyles: {
+				sliced: style
+			}
+		});
+
+//		commonfishLayer = L.vectorGrid.slicer(commonfishLayer.responseJSON, {
+//			rendererFactory: L.svg.tile,
+//			vectorTileLayerStyles: {
+//				sliced: style
+//			}
+//		});
+
+		var mapLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+				subdomains: 'abcd',
+				maxZoom: 19
+				}),
+
+				mapDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+				subdomains: 'abcd',
+				maxZoom: 19
+				});
+
+		var map = L.map('map', {
+		center: [65.5, 11],
+		zoom: 6,
+		layers: [mapLight, netsLayer]
+		});
+
+
+
+		//// WATERMARK
+		L.Control.Watermark = L.Control.extend({
+		    onAdd: function(map) {
+		        var img = L.DomUtil.create('img');
+
+		        img.src = 'https://images.squarespace-cdn.com/content/v1/5e6fe84dfb10111f547aa9b4/1586167670798-42QQXDMA77D0ZJEZ0XTA/final_v4_uten_tekst_svart.png?format=1500w';
+		        img.style.width = '100px';
+
+		        return img;
+		    },
+
+		    onRemove: function(map) {
+		        // Nothing to do here
+		    }
+		});
+
+		L.control.watermark = function(opts) {
+		    return new L.Control.Watermark(opts);
+		}
+
+		L.control.watermark({ position: 'bottomleft' }).addTo(map);
+		////END WATERMARK
+		//// MAGNITUDE COLOR SCALE
+
+				var legend = L.control({position: 'bottomright'});
+
+				legend.onAdd = function (map) {
+
+					var div = L.DomUtil.create('div', 'info legend'),
+						grades = [0, 0.3, 1],
+						labels = ['<h style="color: #777; font-weight: bold">Risk magnitude</h><br>'],
+						txt = ["Low", "Med", "High"],
+						riskColor;
+
+					for (var i = 0; i < grades.length; i++) {
+						riskColor = grades[i];
+						riskLabel = txt[i];
+
+						labels.push(
+							'<i style="background:' + getColor(riskColor) + '"></i> ' + riskLabel);
+					}
+
+					div.innerHTML = labels.join('<br>');
+					return div;
+				};
+
+				legend.addTo(map);
+		//// END MAGNITUDE COLOR SCALE
+
+//// MENUS
+		var basemaps = {
+			"Light": mapLight,
+			"Dark": mapDark
+		};
+
+		var overlays = {
+			//"Fishing rel.": commonfishLayer,
+			"Crabpots": crabpotLayer,
+			"Purse seines": danpurseineLayer,
+			"Long lines": longlineLayer,
+			"Nets": netsLayer,
+			"Land related": landLayer
+		};
+
+		var layerControls = L.control.layers(basemaps, overlays, {collapsed: true, position: 'topright'}).addTo(map);
+		$('<h style="color: #777; font-weight: bold">Basemap</h>').insertBefore('div.leaflet-control-layers-base');
+		$('<h style="color: #777; font-weight: bold">Litter source<h>').insertBefore('div.leaflet-control-layers-overlays');
+
+
+
+
+
+////END MENUS
+
+		});
+
+	</script>
+</body>
+</html>
